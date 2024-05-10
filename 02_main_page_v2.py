@@ -24,23 +24,20 @@ class Mainpage:
         self.button_frame.grid(row=2, column=0, padx=10, pady=10)
 
         # Entry widget for user input
-        self.rounds_entry = Entry(self.button_frame, font=("Arial", "18"), width=6)
+        self.rounds_entry = Entry(self.button_frame, font=("Arial", "18"), width=10)
         self.rounds_entry.grid(row=0, column=0, padx=2, pady=2)
 
         # Error message label
         self.output_label = Label(self.rounds_frame, text="", fg="#9C0000")
         self.output_label.grid(row=3)
 
-        # Enter button to enter user input
-        Button(self.button_frame, text="Enter", bg="#000099",
-               fg="#FFFFFF", font=("Arial", "11", "bold"), width=6,
-               command=self.check_input).grid(row=0, column=1, padx=2, pady=2)
-
         # Infinite mode button
         Button(self.button_frame, text="Inf Rounds", bg="#009900",
                fg="#FFFFFF", font=("Arial", "11", "bold"), width=10,
                command=lambda: self.to_play("inf")).grid(row=0, column=2, padx=2, pady=2)
 
+        # Bind the Enter key to call the check_input method
+        self.rounds_entry.bind("<Return>", lambda event: self.check_input())
     def check_input(self):
         player_rounds = self.num_check(1)
         if player_rounds != "invalid":
