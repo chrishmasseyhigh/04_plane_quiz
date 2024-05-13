@@ -13,10 +13,12 @@ class Mainpage:
         Label(self.rounds_frame, text="Plane Quiz", font=("Arial", 16, "bold")).grid(row=0)
 
         # Instructions label
-        instructions = "In each round you will be given six " \
-                       "different colours to choose from. Pick a colour\n" \
-                       "and see if you can beat the computer's score!\n" \
-                       "\nEnter rounds here (or click inf rounds)"
+        instructions = "Instructions: In this quiz you will be displayed an image and " \
+                       "you have to guess what plane it is and type the answer in the box.\n" \
+                       "\nNames must be a nickname like tomcat or the name of the " \
+                       "aircraft (no “-”) e.g. f14, 737, a320 ect.\n"\
+                       "\nOn this page you will either enter rounds in the white box "\
+                       "or choose to do infinite rounds."
         Label(self.rounds_frame, text=instructions, wrap=250, width=50, justify="left").grid(row=1)
 
         # Button frame for conversion and other actions
@@ -74,5 +76,3 @@ if __name__ == "__main__":
     root = Tk()
     my_game = Mainpage(root)
     root.mainloop()
-
-
