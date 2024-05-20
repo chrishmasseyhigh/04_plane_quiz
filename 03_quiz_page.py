@@ -2,6 +2,8 @@ from tkinter import *
 from functools import partial
 import csv
 import random
+from PIL import Image, ImageTk
+import os
 
 class Mainpage:
     def __init__(self, master):
@@ -120,8 +122,6 @@ class Play:
                                         wraplength=350, justify="left")
         self.instructions_label.grid(row=1)
 
-        # at start, get 'new round'
-        self.new_round()
 
         self.control_frame = Frame(self.quest_frame)
         self.control_frame.grid(row=6)
@@ -134,33 +134,29 @@ class Play:
         self.button_frame = Frame(self.rounds_frame)
         self.button_frame.grid(row=1, column=0, padx=10, pady=10)
 
-        #gets user input/ gets what plane they chose
-        self.rounds_entry = Entry(self.rounds_frame, font=("Arial", "18"), width=18)
-        self.rounds_entry.grid(row=0, column=0, padx=2, pady=5)
+        # Initialize plane image label
+        self.plane_image_label = Label(self.rounds_frame)
+        self.plane_image_label.grid(row=0)
 
-        self.next_button = Button(self.button_frame, text="Next plane",
-                                  fg="#FFFFFF", bg="red",
-                                  font=("Arial", 12, "bold"),
-                                  width=10,
-                                  command=self.new_round)
-        self.next_button.grid(row=2, column=0, padx=5)
+        # gets user input/ gets what plane they chose
+        self.rounds_entry = Entry(self.rounds_frame, font=("Arial", "18"), width=26)
+        self.rounds_entry.grid(row=1, column=0, padx=2, pady=5)
 
-        self.finish_button = Button(self.button_frame, text="Finish Quiz",
-                                  fg="#FFFFFF", bg="green",
-                                  font=("Arial", 12, "bold"),
-                                  width=10,
-                                  command=lambda: self.to_do("finish quiz"))
-        self.finish_button.grid(row=2, column=1,padx=5)
+
+        # Call new_round after defining next_button
+        self.new_round()
+
 
         control_buttons = [
             ["#CC6600", "Help", "get help"],
             ["#004C99", "Statistics", "get stats"],
+            ["green", "Finish Quiz", "finish quiz"]
         ]
 
         # lists to hold refrences for control buttons
         self.control_button_ref = []
 
-        for item in range(0, 2):
+        for item in range(0, 3):
             self.make_control_button = Button(self.control_frame,
                                               fg="#FFFFFF",
                                               bg=control_buttons[item][0],
@@ -219,31 +215,32 @@ class Play:
 
     def new_round(self):
 
+        # Construct the absolute path to the directory containing the files
+        directory_path = "C:/Users/hoggc0017/OneDrive - Massey High School/2024_school_work/Com 301/03_programing_assessment/Plane_Images"
+
+        #select an image (testing)
+        image_filename= "a320.jpg"
+        image_path = os.path.join(directory_path, image_filename)
+
+        # Open and display the new plane image
+        plane_image = Image.open(image_path)
+        self.plane_photo = ImageTk.PhotoImage(plane_image)
+        self.plane_image_label.config(image=self.plane_photo)
+
         # Enable the stats button if at least one round has been played
         if self.rounds_played.get() >= 1:
             self.to_stats_btn.config(state=NORMAL)
 
-        # disable next button (renable it at the end
-        # of the round)
-        #self.next_button.config(state=DISABLED)
-
-        # empty button list so we can get new colours
-        #self.buttons_colours_list.clear()
-
-        # get new colours for buttons
-        #self.buttons_colours_list = self.get_round_colors()
-
-
         # retrieve number of rounds wanted / played
         # and update heading.
-        #how_many = self.rounds_wanted.get()
-        #current_round = self.rounds_played.get()
-        #new_heading = "Choose - Round {} of " \
-                      #"{}".format(current_round + 1, how_many)
-        #self.choose_heading.config(text=new_heading)
+        how_many = self.rounds_wanted.get()
+        current_round = self.rounds_played.get()
+        new_heading = "Choose - Round {} of " \
+                      "{}".format(current_round + 1, how_many)
+        self.choose_heading.config(text=new_heading)
 
-    # work out who won and if the game is over
-    def to_compare(self, user_choice):
+    # work if the game is over
+    def to_compare(self):
 
         how_many = self.rounds_wanted.get()
 
@@ -251,38 +248,6 @@ class Play:
         current_round = self.rounds_played.get()
         current_round += 1
         self.rounds_played.set(current_round)
-
-        # deactivate colour buttons!
-        for item in self.choice_button_ref:
-            item.config(state=DISABLED)
-
-        # set up background colours...
-        win_colour = "#D5E8D4"
-        lose_colour = "#F8CECC"
-
-        # retrieve user score, make it into an integer
-        # and add to list for stats
-        user_score_current = int(user_choice[1])
-        self.user_scores.append(user_score_current)
-
-
-        rounds_outcome_txt = "Round {}: User {} \t" .format(current_round,
-                                                   user_score_current,)
-
-        self.round_results_label.config(bg="#b4323",
-                                        text=rounds_outcome_txt)
-
-        # get total scores for user
-        user_total = sum(self.user_scores)
-
-
-
-        game_outcome_txt = "Total Score: User {} \t".format(user_total)
-        self.game_results_label.config(text=game_outcome_txt)
-
-        # if the game is over, disable all buttons
-        # and change text of 'next' button to either
-        # 'You Win' or 'You Lose' and disable all buttons
 
         if current_round == how_many:
             # Change 'next' button to show overall
@@ -386,7 +351,7 @@ class DisplayStats:
 
         partner.to_stats_btn.config(state=DISABLED)
 
-        self.stats_box.protocol('WH_DELETE_WINDOW',
+        self.stats_box.protocol('WM_DELETE_WINDOW',
                                 partial(self.close_stats, partner))
 
         self.stats_frame = Frame(self.stats_box, width=400,
