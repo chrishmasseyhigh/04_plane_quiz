@@ -90,6 +90,9 @@ class Play:
         self.play_box.protocol('WM_DELETE_WINDOW',
                                partial(self.close_play))
 
+        # Initialize count for planes displayed
+        self.planes_displayed = 0
+
         # Variables used to work out stats when game ends
         self.rounds_wanted = IntVar()
         self.rounds_wanted.set(how_many)
@@ -180,52 +183,43 @@ class Play:
                                    state=DISABLED)
         self.to_stats_btn.grid(row=0, column=1, padx=5)
 
-
-    # retrieve pane images and names from csv file
-    #def get_all_colours(self):
-        #file = open("00_colour_list_hex_v3.csv", "r")
-        #var_all_colors = list(csv.reader(file, delimiter=","))
-        #file.close()
-
-        # removes first entry in list (ie: the header row).
-        #var_all_colors.pop(0)
-        #return var_all_colors
-
-    # randomly gets planes
-    #def get_round_colors(self):
-        #round_colour_list = []
-        #color_scores = []
-
-        # Get six unique colours
-        #while len(round_colour_list) < 6:
-            # choose item
-            #chosen_colour = random.choice(self.all_colours)
-            #index_chosen = self.all_colours.index(chosen_colour)
-
-            # check score is not already in list
-            #if chosen_colour[1] not in color_scores:
-                # add item to rounds list
-                #round_colour_list.append(chosen_colour)
-                #color_scores.append(chosen_colour[1])
-
-                # remove item from master list
-                #self.all_colours.pop(index_chosen)
-
-        #return round_colour_list
-
     def new_round(self):
 
         # Construct the absolute path to the directory containing the files
         directory_path = "C:/Users/hoggc0017/OneDrive - Massey High School/2024_school_work/Com 301/03_programing_assessment/Plane_Images"
 
-        #select an image (testing)
-        image_filename= "a320.jpg"
+        # Load the data from the CSV file into a dictionary
+        planes_list = {}
+        csv_file_path = "C:/Users/hoggc0017/OneDrive - Massey High School/2024_school_work/Com 301/03_programing_assessment/planes.csv"
+
+        with open(csv_file_path, "r") as file:
+            reader = csv.reader(file)
+            next(reader)  # Skip the first row
+            for row in reader:
+                designation = row[0]
+                nickname = row[1]
+                image_filename = row[2]
+                planes_list[designation] = {"nickname": nickname, "image_filename": image_filename}
+
+        # reset list if all planes have been chosen
+        if self.planes_displayed == 53:
+            self.chosen_planes = set()
+            available_planes = planes_list
+
+        # Select a random plane from the dictionary
+        plane_designation = random.choice(list(planes_list.keys()))
+        plane_data = planes_list[plane_designation]
+        nickname = plane_data["nickname"]
+        image_filename = plane_data["image_filename"]
         image_path = os.path.join(directory_path, image_filename)
 
         # Open and display the new plane image
         plane_image = Image.open(image_path)
         self.plane_photo = ImageTk.PhotoImage(plane_image)
         self.plane_image_label.config(image=self.plane_photo)
+
+        # Increment the count of planes displayed
+        self.planes_displayed += 1
 
         # Enable the stats button if at least one round has been played
         if self.rounds_played.get() >= 1:

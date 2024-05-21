@@ -2,6 +2,21 @@ from tkinter import *
 from PIL import Image, ImageTk
 import os
 
+import csv
+
+csv_file_path = r"C:\users\hoggc0017\OneDrive - Massey High School\2024_school_work\Com 301\03_programing_assessment\planes.csv"
+planes_dict = {}
+
+with open(csv_file_path, "r") as file:
+    reader = csv.reader(file)
+    next(reader)  # Skip the first row
+    for row in reader:
+        designation = row[0]
+        nickname = row[1]
+        image_filename = row[2]
+        planes_dict[designation] = {"nickname": nickname, "image_filename": image_filename}
+
+print(planes_dict)
 class Mainpage:
     def __init__(self, master):
         self.master = master
