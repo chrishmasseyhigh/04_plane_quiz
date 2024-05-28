@@ -4,6 +4,7 @@ import csv
 import random
 from PIL import Image, ImageTk
 import os
+import re
 
 class Mainpage:
     def __init__(self, master):
@@ -43,7 +44,7 @@ class Mainpage:
                fg="#FFFFFF", font=("Arial", "11", "bold"), width=10,
                command=lambda: self.to_play("inf")).grid(row=0, column=2, padx=2, pady=2)
 
-        # Bind the Enter key to call the check_input method
+        # Bind the Entry key to call the check_input method
         self.rounds_entry.bind("<Return>", lambda event: self.check_input())
     def check_input(self):
         player_rounds = self.num_check(1)
@@ -140,13 +141,11 @@ class Play:
         self.plane_image_label.grid(row=0)
 
         # gets user input/ gets what plane they chose
-        self.rounds_entry = Entry(self.rounds_frame, font=("Arial", "18"), width=26)
-        self.rounds_entry.grid(row=1, column=0, padx=2, pady=5)
-
+        self.planes_entry = Entry(self.rounds_frame, font=("Arial", "18"), width=26)
+        self.planes_entry.grid(row=1, column=0, padx=2, pady=5)
 
         # Call new_round after defining next_button
         self.new_round()
-
 
         control_buttons = [
             ["#CC6600", "Help", "get help"],
@@ -181,14 +180,16 @@ class Play:
                                    state=DISABLED)
         self.to_stats_btn.grid(row=0, column=1, padx=5)
 
+        # Binds planes_entry to quiz_input function
+        self.planes_entry.bind("<Return>", lambda event: self.check_input())
+
     # loads plane images and creates a list of names and image id
     def load_plane_images(self):
 
         # lists to hold plane data
         planes_list = {}
-        csv_file_path = "C:/Users/hoggc0017/OneDrive - Massey High School/2024_school_work/Com 301/03_programing_assessment/planes.csv"
 
-        with open(csv_file_path, "r") as file:
+        with open("planes.csv", "r") as file:
             reader = csv.reader(file)
             # skips the first row
             next(reader)
@@ -201,8 +202,6 @@ class Play:
         return planes_list, list(planes_list.keys())
 
     def new_round(self):
-        # Construct the absolute path to the directory containing the files
-        directory_path = "C:/Users/hoggc0017/OneDrive - Massey High School/2024_school_work/Com 301/03_programing_assessment/Plane_Images"
 
         # Check if all planes have been displayed and reset if needed
         if not self.available_planes:
@@ -214,13 +213,12 @@ class Play:
         plane_data = self.planes_list[plane_designation]
         nickname = plane_data["nickname"]
         image_filename = plane_data["image_filename"]
-        image_path = os.path.join(directory_path, image_filename)
+        image_path = os.path.join("Plane_Images", image_filename)
 
         # Remove the chosen plane from the available planes list
         self.available_planes.remove(plane_designation)
 
-
-        # Open and display the new plane image
+        # Open and display the new plane images
         plane_image = Image.open(image_path)
         self.plane_photo = ImageTk.PhotoImage(plane_image)
         self.plane_image_label.config(image=self.plane_photo)
@@ -237,30 +235,41 @@ class Play:
                       "{}".format(current_round + 1, how_many)
         self.choose_heading.config(text=new_heading)
 
-    # work if the game is over
-    def to_compare(self):
-
-        how_many = self.rounds_wanted.get()
-
-        # Add one to number of rounds played
-        current_round = self.rounds_played.get()
-        current_round += 1
-        self.rounds_played.set(current_round)
-
-        if current_round == how_many:
-            # Change 'next' button to show overall
-            # win / loss result and disable it
-            self.next_button.config(state=DISABLED,
-                                    text="finished")
-
-
-            # change all colour button background to light grey
-            for item in self.choice_button_ref:
-                item['bg'] = "#C0C0C0"
-
+    def check_input(self):
+        user_input = self.planes_entry.get().strip().lower()
+        error = self.check_input_validity(user_input)
+        if error:
+            # If there's an error, show it
+            print(error)
         else:
-            # enable next round button and update heading
-            self.next_button.config(state=NORMAL)
+            # If input is valid, pass it to quiz_input along with the event object
+            self.quiz_input(user_input)
+
+    def check_input_validity(self, input_text):
+        # Check if the input is empty
+        if not input_text:
+            return "Please enter something."
+
+        valid_char = "[A-Za-z0-9_]"
+
+        # iterates though filename and checks each letter
+        for letter in input_text:
+
+            if re.match(valid_char, letter):
+                # If the character is valid, continue checking the next character
+                continue
+            else:
+                # If an invalid character is found, set the problem message
+                problem = ("Sorry, no '{}'s allowed".format(letter))
+                return problem
+                break
+
+            return None  # No error
+
+    def quiz_input(self, user_input):
+        # Now the input is validated and passed here
+        print("User input:", user_input)
+        # Rest of your quiz_input logic here...
 
     # Detects which 'control' button was pressed and
     # invokes necessary function.  Can possibly replace functions
