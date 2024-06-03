@@ -209,14 +209,13 @@ class Play:
             self.planes_displayed = 0
 
         # Select a random plane from the available planes
-        plane_designation = random.choice(self.available_planes)
-        plane_data = self.planes_list[plane_designation]
-        nickname = plane_data["nickname"]
+        self.plane_designation = random.choice(self.available_planes)
+        plane_data = self.planes_list[self.plane_designation]
         image_filename = plane_data["image_filename"]
         image_path = os.path.join("Plane_Images", image_filename)
 
         # Remove the chosen plane from the available planes list
-        self.available_planes.remove(plane_designation)
+        self.available_planes.remove(self.plane_designation)
 
         # Open and display the new plane images
         plane_image = Image.open(image_path)
@@ -239,10 +238,10 @@ class Play:
         user_input = self.planes_entry.get().strip().lower()
         error = self.check_input_validity(user_input)
         if error:
-            # If there's an error, show it
+            # if there is an error display it
             print(error)
         else:
-            # If input is valid, pass it to quiz_input along with the event object
+            # If the input is valid pass it on to the quiz input function
             self.quiz_input(user_input)
 
     def check_input_validity(self, input_text):
@@ -254,9 +253,8 @@ class Play:
 
         # iterates though filename and checks each letter
         for letter in input_text:
-
+            # If the character is valid, continue checking the next character
             if re.match(valid_char, letter):
-                # If the character is valid, continue checking the next character
                 continue
             else:
                 # If an invalid character is found, set the problem message
@@ -267,9 +265,26 @@ class Play:
             return None  # No error
 
     def quiz_input(self, user_input):
-        # Now the input is validated and passed here
+        plane_data = self.planes_list[self.plane_designation]
+        designation = self.plane_designation.lower()
+        nickname = plane_data["nickname"].lower()
+
         print("User input:", user_input)
-        # Rest of your quiz_input logic here...
+
+        if user_input == designation or user_input == nickname:
+            print("pass")
+
+        else:
+            print("fail")
+
+        # Add one to number of rounds played
+        current_round = self.rounds_played.get()
+        current_round += 1
+        self.rounds_played.set(current_round)
+        print(current_round)
+
+
+
 
     # Detects which 'control' button was pressed and
     # invokes necessary function.  Can possibly replace functions
@@ -294,7 +309,6 @@ class Play:
         # end current game and allow new game to start
         self.master.deiconify()
         self.play_box.destroy()
-
 
 # show users help / game tips:
 class DisplayHelp:
