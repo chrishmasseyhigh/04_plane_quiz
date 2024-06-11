@@ -4,7 +4,7 @@ import os
 
 import csv
 
-csv_file_path = r"C:\users\hoggc0017\OneDrive - Massey High School\2024_school_work\Com 301\03_programing_assessment\planes.csv"
+csv_file_path = r"C:\users\hoggc0017\OneDrive - Massey High School\2024_school_work\Com 301\03_programing_assessment\04_plane_quiz\planes.csv"
 planes_dict = {}
 
 with open(csv_file_path, "r") as file:

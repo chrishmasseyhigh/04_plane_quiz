@@ -92,8 +92,7 @@ class Play:
                                partial(self.close_play))
 
         # Variables used to work out stats when game ends
-        self.rounds_wanted = IntVar()
-        self.rounds_wanted.set(how_many)
+        self.rounds_wanted = how_many
 
         # initialy set rounds played and won to 0
         self.rounds_played = IntVar()
@@ -123,7 +122,6 @@ class Play:
         self.instructions_label = Label(self.quest_frame, text=instructions,
                                         wraplength=350, justify="left")
         self.instructions_label.grid(row=1)
-
 
         self.control_frame = Frame(self.quest_frame)
         self.control_frame.grid(row=6)
@@ -205,14 +203,25 @@ class Play:
 
         return planes_list, list(planes_list.keys())
 
+    #set up new images, inf mode and removes items from  list when picked
     def new_round(self):
+        # sets total rounds and times amount of rounds played to
+        # rounds to make inf if inf mode is pressed
+        self.total_rounds = 2
+
+        if self.rounds_wanted == 'inf':
+            self.total_rounds += 10 * self.rounds_played.get()
+        else:
+            self.total_rounds = self.rounds_wanted
+
         # Check if the number of rounds played equals the number of rounds wanted + 1
-        if self.rounds_played.get() == self.rounds_wanted.get():
+        if self.rounds_played.get() == self.total_rounds:
             # Disable the entry box if the condition is met
             self.planes_entry.config(state=DISABLED)
             self.planes_entry.unbind("<Return>")
             self.instructions_label.config(text="Game Over")
             return
+
         else:
             # Check if all planes have been displayed and reset if needed
             if not self.available_planes:
@@ -239,7 +248,7 @@ class Play:
 
             # retrieve number of rounds wanted / played
             # and update heading.
-            how_many = self.rounds_wanted.get()
+            how_many = self.rounds_wanted
             current_round = self.rounds_played.get()
             new_heading = "Choose - Round {} of " \
                           "{}".format(current_round + 1, how_many)
@@ -273,7 +282,6 @@ class Play:
                 # If an invalid character is found, set the problem message
                 problem = ("Sorry, no '{}'s allowed".format(letter))
                 return problem
-                break
 
     def quiz_input(self, user_input):
 
@@ -287,15 +295,17 @@ class Play:
         designation = self.plane_designation.lower()
         nickname = plane_data["nickname"].lower()
 
+        # if answer is correct
         if user_input == designation or user_input == nickname:
             self.planes_entry.config(bg="#98FB98")
             self.message_label.config(fg="green", text="Correct!!")
             self.new_round()
             return "valid"
 
+        # if answer is incorrect
         else:
             self.planes_entry.config(bg="#D9544D")
-            self.message_label.config(fg="#D9544D", text="Wrong")
+            self.message_label.config(fg="#D9544D", text="Wrong answer was {}".format(designation))
             self.new_round()
             return "invalid"
 
@@ -319,7 +329,6 @@ class Play:
         # Call DisplayHelp class to display help dialog
         DisplayHelp(self.master)
 
-
     def close_play(self):
         # end current game and allow new game to start
         self.master.deiconify()
@@ -341,27 +350,38 @@ class DisplayHelp:
         self.help_box.protocol('WM_DELETE_WINDOW',
                                partial(self.close_help, partner))
 
-        self.help_frame = Frame(self.help_box, width=300, height=200,
+        self.help_frame = Frame(self.help_box, width=500, height=200,
                                 bg=background)
         self.help_frame.grid()
 
         self.help_heading_label = Label(self.help_frame, bg=background,
-                                        text="Help / hints",
+                                        text="--- Help ---",
                                         font=("Arial", "18", "bold"))
         self.help_heading_label.grid(row=0)
-        help_text = """ Your goal in this game is to beat the computer and you have an
-    advantage-you get to chose the colour first. The points
-    associated with the colours are based on the colours hex code. 
-    The higher the value of the colour, the greater your score. 
+        help_text = """Welcome to the Plane Quiz! This application tests your knowledge of different types of aircraft. Below are the instructions on how to play the game:
 
-    To see that statistics, click on the statistics button. Win the
-    game by scoring more that the computer overall. Don't be
-    discouraged if you don't win every round, it's your overall score
-    that counts. 
+**Game Objective:**
+Your objective is to identify the name of the airplane displayed in the image. 
+You need to type the name of the airplane in the text box provided. Names should be either the official designation of the aircraft (e.g., "A320", "737") or a commonly used nickname (e.g., "Tomcat", "Flanker").
 
-    Good luck! Chose carefully.."""
+**Playing the Game:**
+- In each round, an image of an airplane will be displayed along with the question "What plane is this?"
+- Type your answer in the text box below the image and press Enter.
+- If your answer is correct, the text box will turn green and display "Correct".
+- If your answer is incorrect, the text box will turn red and display the correct answer.
+
+**Control Buttons:**
+- *Help*: Click on this button to view these instructions again.
+- *Statistics*: Click on this button to view your game statistics, including the number of correct and incorrect answers, and the percentage. It also includes an option to save the statistics to a file.
+- *Finish Quiz*: Click on this button to finish the quiz and return to the main menu.
+
+**Game Over:**
+The game ends when you have completed all rounds or clicked "Finish Quiz". You can start a new game by entering the number of rounds or pressing the "Infinite Rounds" button.
+
+Enjoy playing the Plane Quiz and test your knowledge of airplanes!
+"""
         self.help_text_label = Label(self.help_frame, bg=background,
-                                     text=help_text, wrap=350,
+                                     text=help_text, wrap=600,
                                      justify="left")
         self.help_text_label.grid(row=1, padx=10)
 
