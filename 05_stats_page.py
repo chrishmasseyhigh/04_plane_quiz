@@ -447,7 +447,6 @@ class DisplayStats:
         percentage_lost = 100 - percentage_won
 
         # background for formating
-        head_back = "#FFFFFF"
         odd_rows = "#C9D6E8"
         even_rows = stats_bg_colour
         
