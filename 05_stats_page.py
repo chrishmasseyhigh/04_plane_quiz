@@ -101,6 +101,14 @@ class Play:
         self.rounds_won = IntVar()
         self.rounds_won.set(0)
 
+
+        #sets the win/ loss variables
+        self.rounds_won = IntVar()
+        self.rounds_won.set(0)
+
+        self.rounds_lost = IntVar()
+        self.rounds_lost.set(0)
+
         # lists to hold user scores
         self.user_scores = []
 
@@ -271,7 +279,7 @@ class Play:
             problem =("Please enter something.")
             return problem
 
-        valid_char = "[A-Za-z0-9_]"
+        valid_char = "[A-Za-z0-9 ]"
 
         # iterates though filename and checks each letter
         for letter in input_text:
@@ -284,12 +292,11 @@ class Play:
                 return problem
 
     def quiz_input(self, user_input):
-
         # Adds one to number of rounds played
         current_round = self.rounds_played.get()
         current_round += 1
         self.rounds_played.set(current_round)
-
+        
         # gets plane info
         plane_data = self.planes_list[self.plane_designation]
         designation = self.plane_designation.lower()
@@ -300,6 +307,7 @@ class Play:
             self.planes_entry.config(bg="#98FB98")
             self.message_label.config(fg="green", text="Correct!!")
             self.new_round()
+            self.rounds_won.set(self.rounds_won.get() +1)
             return "valid"
 
         # if answer is incorrect
@@ -307,6 +315,7 @@ class Play:
             self.planes_entry.config(bg="#D9544D")
             self.message_label.config(fg="#D9544D", text="Wrong answer was {}".format(designation))
             self.new_round()
+            self.rounds_lost.set(self.rounds_lost.get() +1)
             return "invalid"
 
 
@@ -318,7 +327,7 @@ class Play:
         if action == "get help":
             DisplayHelp(self)
         elif action == "get stats":
-            DisplayStats(self, self.user_scores)
+            DisplayStats(self, self.rounds_won, self.rounds_lost, self.rounds_played)
         else:
             self.close_play()
 
@@ -400,13 +409,8 @@ Enjoy playing the Plane Quiz and test your knowledge of airplanes!
         partner.help_button.config(state=NORMAL)
 
 class DisplayStats:
-    def __init__(self, partner, rounds_won, rounds_lost,rounds_played):
+    def __init__(self, partner, rounds_won, rounds_lost, rounds_played):
         self.stats_box = Toplevel()
-        self.stats_box.title("Statistics")
-        
-        #calculate percentage
-        percentage_won = (rounds_won.get()/ rounds_played.get())*100
-        percentage_lost = 100 - percentage_won
 
         stats_bg_colour = "#DAE8FC"
 
@@ -435,14 +439,45 @@ class DisplayStats:
                                 borderwidth=1, relief="solid")
         self.data_frame.grid(row=2,padx=10,pady=10)
 
-        # labels for the top row (and colours)   
-        top_labels = ["", "Totals", "Percentages"]
-        top_label_colours = ["#FFFFFF", "#C9D6E8", "#DAE8FC"]
+        # get stats for user
+        rounds_won_value = rounds_won.get()
+        rounds_lost_value = rounds_lost.get()
+        rounds_played_value = rounds_played.get()
+        percentage_won = (rounds_won_value / rounds_played_value) * 100 if rounds_played_value != 0 else 0
+        percentage_lost = 100 - percentage_won
 
-        # Populate labels using lists aboves
+        # background for formating
+        head_back = "#FFFFFF"
+        odd_rows = "#C9D6E8"
+        even_rows = stats_bg_colour
+        
+        # sets up row formats   
+        row_formats = [ odd_rows, even_rows, odd_rows]
+
+        # Define rows
+        main_header_list =["","Won","Lost"]
+        totals_row_list =["Total",rounds_won_value,rounds_lost_value]
+        percentage_row_list = ["Percentages",percentage_won,percentage_lost]
+        
+        # data for all labels
         all_labels = []
-        for item in range(len(top_labels)):
-            all_labels.append([top_labels[item],top_label_colours[item]])
+
+        count =0
+        for item in range(0, 3):
+            all_labels.append([main_header_list[item],  row_formats[count]])
+            all_labels.append([totals_row_list[item],  row_formats[count]])
+            all_labels.append([percentage_row_list[item],  row_formats[count]])
+            count += 1
+
+        # create labels based on list above
+        for item in range(0, len(all_labels)):
+            self.data_label = Label(self.data_frame, text=all_labels[item][0],
+                                    bg=all_labels[item][1],
+                                    width="10", height="2", padx=5
+                                    )
+            self.data_label.grid(row=item // 3,
+                                 column=item % 3,
+                                 padx=0, pady=0)
 
         # dismiss button
         self.dismiss_button = Button(self.stats_frame,
@@ -453,16 +488,7 @@ class DisplayStats:
                                                      partner))
         self.dismiss_button.grid(row=6, column=0, columnspan=5, padx=10, pady=5)
 
-    @staticmethod
-    def get_stats(score_list, entity):
-        total_score = sum(score_list)
-        best_score = max(score_list)
-        worst_score = min(score_list)
-        average = total_score / len(score_list)
-        rounded_average = round(average, 1)
-
-        return [entity, total_score, best_score, worst_score, rounded_average]
-
+    
     def close_stats(self, partner):
         partner.to_stats_btn.config(state=NORMAL)
         self.stats_box.destroy()
