@@ -6,6 +6,7 @@ from PIL import Image, ImageTk
 import os
 import re
 
+# Rounds entry page
 class Mainpage:
     def __init__(self, master):
         self.master = master
@@ -46,6 +47,7 @@ class Mainpage:
 
         # Bind the Entry key to call the check_input method
         self.rounds_entry.bind("<Return>", lambda event: self.check_input())
+
     def check_input(self):
         player_rounds = self.num_check(1)
         if player_rounds != "invalid":
@@ -80,6 +82,7 @@ class Mainpage:
         # hide root window (i.e., hide rounds choice window)
         self.master.withdraw()
 
+# Mainn quiz page where users can play the mian game
 class Play:
 
     def __init__(self, master, how_many):
@@ -97,10 +100,6 @@ class Play:
         # initialy set rounds played and won to 0
         self.rounds_played = IntVar()
         self.rounds_played.set(0)
-
-        self.rounds_won = IntVar()
-        self.rounds_won.set(0)
-
 
         #sets the win/ loss variables
         self.rounds_won = IntVar()
@@ -166,6 +165,7 @@ class Play:
         # lists to hold refrences for control buttons
         self.control_button_ref = []
 
+        # makes control buttons
         for item in range(0, 3):
             self.make_control_button = Button(self.control_frame,
                                               fg="#FFFFFF",
@@ -199,6 +199,7 @@ class Play:
         # lists to hold plane data
         planes_list = {}
 
+        # gets filename designation and nickname form file
         with open("planes.csv", "r") as file:
             reader = csv.reader(file)
             # skips the first row
@@ -217,6 +218,7 @@ class Play:
         # rounds to make inf if inf mode is pressed
         self.total_rounds = 2
 
+        # sets infinite rounds if inf button is pressed
         if self.rounds_wanted == 'inf':
             self.total_rounds += 10 * self.rounds_played.get()
         else:
@@ -262,6 +264,7 @@ class Play:
                           "{}".format(current_round + 1, how_many)
             self.choose_heading.config(text=new_heading)
 
+    # checks user input
     def check_input(self):
         user_input = self.planes_entry.get().strip().lower()
         error = self.check_input_validity(user_input)
@@ -291,6 +294,7 @@ class Play:
                 problem = ("Sorry, no '{}'s allowed".format(letter))
                 return problem
 
+    # compares answer to input and configures other values
     def quiz_input(self, user_input):
         # Adds one to number of rounds played
         current_round = self.rounds_played.get()
@@ -343,7 +347,7 @@ class Play:
         self.master.deiconify()
         self.play_box.destroy()
 
-# show users help / game tips:
+# Shows users help / game tips:
 class DisplayHelp:
 
     def __init__(self, partner):
@@ -408,8 +412,10 @@ Enjoy playing the Plane Quiz and test your knowledge of airplanes!
         # Enable the help button in the partner Converter instance
         partner.help_button.config(state=NORMAL)
 
+# Displays users stats with won/ lost totals and percentages
 class DisplayStats:
     def __init__(self, partner, rounds_won, rounds_lost, rounds_played):
+        # sets up stats window
         self.stats_box = Toplevel()
 
         stats_bg_colour = "#DAE8FC"
@@ -424,12 +430,12 @@ class DisplayStats:
         self.stats_frame.grid()
 
         self.help_heading_label = Label(self.stats_frame,
-                                        text="Statistics",
+                                        text="---- Statistics ----",
                                         font=("Arial", "14", "bold"),
                                         bg=stats_bg_colour)
         self.help_heading_label.grid(row=0)
 
-        stats_text = "Here are your game stats"
+        stats_text = "Here are your game stats:"
         self.help_text_label = Label(self.stats_frame, text = stats_text,
                                      justify="left",bg=stats_bg_colour)
         self.help_text_label.grid(row=1,padx=10)
@@ -461,6 +467,7 @@ class DisplayStats:
         # data for all labels
         all_labels = []
 
+        # add all items to all_labels
         count =0
         for item in range(0, 3):
             all_labels.append([main_header_list[item],  row_formats[count]])
@@ -487,7 +494,7 @@ class DisplayStats:
                                                      partner))
         self.dismiss_button.grid(row=5, column=0, columnspan=5, padx=10, pady=5)
 
-    
+    #closes stats
     def close_stats(self, partner):
         partner.to_stats_btn.config(state=NORMAL)
         self.stats_box.destroy()
