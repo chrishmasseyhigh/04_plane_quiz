@@ -82,7 +82,7 @@ class Mainpage:
         # hide root window (i.e., hide rounds choice window)
         self.master.withdraw()
 
-# Mainn quiz page where users can play the mian game
+# Main quiz page where users can play the mian game
 class Play:
 
     def __init__(self, master, how_many):
@@ -114,27 +114,27 @@ class Play:
         # Load plane images and create a list of available planes
         self.planes_list, self.available_planes = self.load_plane_images()
 
-        # get all the colours for use in the game
-        self.quest_frame = Frame(self.play_box, padx=10, pady=10)
-        self.quest_frame.grid()
+        # configures all the mian labels
+        self.label_frame = Frame(self.play_box, padx=10, pady=10)
+        self.label_frame.grid()
 
         rounds_heading = "Round 1 of {}".format(how_many)
-        self.choose_heading = Label(self.quest_frame, text=rounds_heading,
+        self.choose_heading = Label(self.label_frame, text=rounds_heading,
                                     font=("Arial", "16", "bold")
                                     )
         self.choose_heading.grid(row=0)
 
         instructions = "What plane is this?"
 
-        self.instructions_label = Label(self.quest_frame, text=instructions,
+        self.instructions_label = Label(self.label_frame, text=instructions,
                                         wraplength=350, justify="left")
         self.instructions_label.grid(row=1)
 
-        self.control_frame = Frame(self.quest_frame)
+        self.control_frame = Frame(self.label_frame)
         self.control_frame.grid(row=6)
 
-        # frame to include round results and next button
-        self.rounds_frame = Frame(self.quest_frame)
+        # frame to include round results
+        self.rounds_frame = Frame(self.label_frame)
         self.rounds_frame.grid(row=4, pady=5)
 
         # Button frame for conversion and other actions
@@ -153,7 +153,7 @@ class Play:
         self.message_label = Label(self.rounds_frame, text="", fg="white")
         self.message_label.grid(row=3)
 
-        # Call new_round after defining next_button
+        # Call new_round
         self.new_round()
 
         control_buttons = [
@@ -165,7 +165,7 @@ class Play:
         # lists to hold refrences for control buttons
         self.control_button_ref = []
 
-        # makes control buttons
+        # Makes control buttons
         for item in range(0, 3):
             self.make_control_button = Button(self.control_frame,
                                               fg="#FFFFFF",
@@ -176,10 +176,10 @@ class Play:
                                               state=control_buttons[item][3])
             self.make_control_button.grid(row=0, column=item, padx=5)
 
-            # add buttons to control list
+            # Add buttons to control list
             self.control_button_ref.append(self.make_control_button)
 
-        # defines help button and to_stats_btn
+        # Defines help button and to_stats_btn
         self.help_button = self.control_button_ref[0]
 
         self.to_stats_btn = self.control_button_ref[1]
@@ -227,7 +227,6 @@ class Play:
             # Check if all planes have been displayed and reset if needed
             if not self.available_planes:
                 self.available_planes = list(self.planes_list.keys())
-                self.planes_displayed = 0
 
             # Select a random plane from the available planes
             self.plane_designation = random.choice(self.available_planes)
@@ -401,7 +400,8 @@ Enjoy playing the Plane Quiz and test your knowledge of airplanes!
     def close_help(self, partner):
         self.help_box.destroy()
         # Enable the help button in the partner Converter instance
-        partner.help_button.config(state=NORMAL)
+        if partner.help_button.winfo_exists():
+            partner.help_button.config(state=NORMAL)
 
 # Displays users stats with won/ lost totals and percentages
 class DisplayStats:
@@ -487,7 +487,9 @@ class DisplayStats:
 
     #closes stats
     def close_stats(self, partner):
-        partner.to_stats_btn.config(state=NORMAL)
+        # checks if stats button exists and configs it if it does
+        if partner.to_stats_btn.winfo_exists():
+            partner.to_stats_btn.config(state=NORMAL)
         self.stats_box.destroy()
 
 if __name__ == "__main__":
