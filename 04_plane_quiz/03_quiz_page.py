@@ -6,7 +6,6 @@ from PIL import Image, ImageTk
 import os
 import re
 
-# Rounds entry page
 class Mainpage:
     def __init__(self, master):
         self.master = master
@@ -47,7 +46,6 @@ class Mainpage:
 
         # Bind the Entry key to call the check_input method
         self.rounds_entry.bind("<Return>", lambda event: self.check_input())
-
     def check_input(self):
         player_rounds = self.num_check(1)
         if player_rounds != "invalid":
@@ -82,7 +80,6 @@ class Mainpage:
         # hide root window (i.e., hide rounds choice window)
         self.master.withdraw()
 
-# Main quiz page where users can play the mian game
 class Play:
 
     def __init__(self, master, how_many):
@@ -95,18 +92,15 @@ class Play:
                                partial(self.close_play))
 
         # Variables used to work out stats when game ends
-        self.rounds_wanted = how_many
+        self.rounds_wanted = IntVar()
+        self.rounds_wanted.set(how_many)
 
         # initialy set rounds played and won to 0
         self.rounds_played = IntVar()
         self.rounds_played.set(0)
 
-        #sets the win/ loss variables
         self.rounds_won = IntVar()
         self.rounds_won.set(0)
-
-        self.rounds_lost = IntVar()
-        self.rounds_lost.set(0)
 
         # lists to hold user scores
         self.user_scores = []
@@ -114,27 +108,28 @@ class Play:
         # Load plane images and create a list of available planes
         self.planes_list, self.available_planes = self.load_plane_images()
 
-        # configures all the mian labels
-        self.label_frame = Frame(self.play_box, padx=10, pady=10)
-        self.label_frame.grid()
+        # get all the colours for use in the game
+        self.quest_frame = Frame(self.play_box, padx=10, pady=10)
+        self.quest_frame.grid()
 
         rounds_heading = "Round 1 of {}".format(how_many)
-        self.choose_heading = Label(self.label_frame, text=rounds_heading,
+        self.choose_heading = Label(self.quest_frame, text=rounds_heading,
                                     font=("Arial", "16", "bold")
                                     )
         self.choose_heading.grid(row=0)
 
         instructions = "What plane is this?"
 
-        self.instructions_label = Label(self.label_frame, text=instructions,
+        self.instructions_label = Label(self.quest_frame, text=instructions,
                                         wraplength=350, justify="left")
         self.instructions_label.grid(row=1)
 
-        self.control_frame = Frame(self.label_frame)
+
+        self.control_frame = Frame(self.quest_frame)
         self.control_frame.grid(row=6)
 
-        # frame to include round results
-        self.rounds_frame = Frame(self.label_frame)
+        # frame to include round results and next button
+        self.rounds_frame = Frame(self.quest_frame)
         self.rounds_frame.grid(row=4, pady=5)
 
         # Button frame for conversion and other actions
@@ -153,36 +148,41 @@ class Play:
         self.message_label = Label(self.rounds_frame, text="", fg="white")
         self.message_label.grid(row=3)
 
-        # Call new_round
+        # Call new_round after defining next_button
         self.new_round()
 
         control_buttons = [
-            ["#CC6600", "Help", "get help","normal"],
-            ["#004C99", "Statistics", "get stats","disabled"],
-            ["green", "Finish Quiz", "finish quiz","normal"]
+            ["#CC6600", "Help", "get help"],
+            ["#004C99", "Statistics", "get stats"],
+            ["green", "Finish Quiz", "finish quiz"]
         ]
 
         # lists to hold refrences for control buttons
         self.control_button_ref = []
 
-        # Makes control buttons
         for item in range(0, 3):
             self.make_control_button = Button(self.control_frame,
                                               fg="#FFFFFF",
                                               bg=control_buttons[item][0],
                                               text=control_buttons[item][1],
                                               width=10, font=("Arial", "12", "bold"),
-                                              command=lambda i=item: self.to_do(control_buttons[i][2]),
-                                              state=control_buttons[item][3])
+                                              command=lambda i=item: self.to_do(control_buttons[i][2]))
             self.make_control_button.grid(row=0, column=item, padx=5)
 
-            # Add buttons to control list
+            # add buttons to control list
             self.control_button_ref.append(self.make_control_button)
 
-        # Defines help button and to_stats_btn
         self.help_button = self.control_button_ref[0]
 
-        self.to_stats_btn = self.control_button_ref[1]
+        # Create the stats button
+        self.to_stats_btn = Button(self.control_frame,
+                                   fg="#FFFFFF",
+                                   bg=control_buttons[1][0],
+                                   text=control_buttons[1][1],
+                                   width=10, font=("Arial", "12", "bold"),
+                                   command=lambda: self.to_do("get stats"),
+                                   state=DISABLED)
+        self.to_stats_btn.grid(row=0, column=1, padx=5)
 
         # Binds planes_entry to quiz_input function
         self.planes_entry.bind("<Return>", lambda event: self.check_input())
@@ -193,7 +193,6 @@ class Play:
         # lists to hold plane data
         planes_list = {}
 
-        # gets filename designation and nickname form file
         with open("planes.csv", "r") as file:
             reader = csv.reader(file)
             # skips the first row
@@ -206,27 +205,19 @@ class Play:
 
         return planes_list, list(planes_list.keys())
 
-    #set up new images, inf mode and removes items from  list when picked
     def new_round(self):
-
-        # sets infinite rounds if inf button is pressed
-        if self.rounds_wanted == 'inf':
-            self.total_rounds = 10 * self.rounds_played.get() +10
-        else:
-            self.total_rounds = self.rounds_wanted
-
         # Check if the number of rounds played equals the number of rounds wanted + 1
-        if self.rounds_played.get() == self.total_rounds:
+        if self.rounds_played.get() == self.rounds_wanted.get():
             # Disable the entry box if the condition is met
             self.planes_entry.config(state=DISABLED)
             self.planes_entry.unbind("<Return>")
             self.instructions_label.config(text="Game Over")
             return
-
         else:
             # Check if all planes have been displayed and reset if needed
             if not self.available_planes:
                 self.available_planes = list(self.planes_list.keys())
+                self.planes_displayed = 0
 
             # Select a random plane from the available planes
             self.plane_designation = random.choice(self.available_planes)
@@ -243,18 +234,17 @@ class Play:
             self.plane_image_label.config(image=self.plane_photo)
 
             # Enable the stats button if at least one round has been played
-            if 1<= self.rounds_played.get() < 2:
+            if self.rounds_played.get() >= 1:
                 self.to_stats_btn.config(state=NORMAL)
 
             # retrieve number of rounds wanted / played
             # and update heading.
-            how_many = self.rounds_wanted
+            how_many = self.rounds_wanted.get()
             current_round = self.rounds_played.get()
             new_heading = "Choose - Round {} of " \
                           "{}".format(current_round + 1, how_many)
             self.choose_heading.config(text=new_heading)
 
-    # checks user input
     def check_input(self):
         user_input = self.planes_entry.get().strip().lower()
         error = self.check_input_validity(user_input)
@@ -272,7 +262,7 @@ class Play:
             problem =("Please enter something.")
             return problem
 
-        valid_char = "[A-Za-z0-9 ]"
+        valid_char = "[A-Za-z0-9_]"
 
         # iterates though filename and checks each letter
         for letter in input_text:
@@ -283,33 +273,30 @@ class Play:
                 # If an invalid character is found, set the problem message
                 problem = ("Sorry, no '{}'s allowed".format(letter))
                 return problem
+                break
 
-    # compares answer to input and configures other values
     def quiz_input(self, user_input):
+
         # Adds one to number of rounds played
         current_round = self.rounds_played.get()
         current_round += 1
         self.rounds_played.set(current_round)
-        
+
         # gets plane info
         plane_data = self.planes_list[self.plane_designation]
         designation = self.plane_designation.lower()
         nickname = plane_data["nickname"].lower()
 
-        # if answer is correct
         if user_input == designation or user_input == nickname:
             self.planes_entry.config(bg="#98FB98")
             self.message_label.config(fg="green", text="Correct!!")
             self.new_round()
-            self.rounds_won.set(self.rounds_won.get() +1)
             return "valid"
 
-        # if answer is incorrect
         else:
             self.planes_entry.config(bg="#D9544D")
-            self.message_label.config(fg="#D9544D", text="Wrong answer was {}".format(designation))
+            self.message_label.config(fg="#D9544D", text="Wrong")
             self.new_round()
-            self.rounds_lost.set(self.rounds_lost.get() +1)
             return "invalid"
 
 
@@ -321,7 +308,7 @@ class Play:
         if action == "get help":
             DisplayHelp(self)
         elif action == "get stats":
-            DisplayStats(self, self.rounds_won, self.rounds_lost, self.rounds_played)
+            DisplayStats(self, self.user_scores)
         else:
             self.close_play()
 
@@ -332,12 +319,13 @@ class Play:
         # Call DisplayHelp class to display help dialog
         DisplayHelp(self.master)
 
+
     def close_play(self):
         # end current game and allow new game to start
         self.master.deiconify()
         self.play_box.destroy()
 
-# Shows users help / game tips:
+# show users help / game tips:
 class DisplayHelp:
 
     def __init__(self, partner):
@@ -353,38 +341,27 @@ class DisplayHelp:
         self.help_box.protocol('WM_DELETE_WINDOW',
                                partial(self.close_help, partner))
 
-        self.help_frame = Frame(self.help_box, width=500, height=200,
+        self.help_frame = Frame(self.help_box, width=300, height=200,
                                 bg=background)
         self.help_frame.grid()
 
         self.help_heading_label = Label(self.help_frame, bg=background,
-                                        text="--- Help ---",
+                                        text="Help / hints",
                                         font=("Arial", "18", "bold"))
         self.help_heading_label.grid(row=0)
-        help_text = """Welcome to the Plane Quiz! This application tests your knowledge of different types of aircraft. Below are the instructions on how to play the game:
+        help_text = """ Your goal in this game is to beat the computer and you have an
+    advantage-you get to chose the colour first. The points
+    associated with the colours are based on the colours hex code. 
+    The higher the value of the colour, the greater your score. 
 
-**Game Objective:**
-Your objective is to identify the name of the airplane displayed in the image. 
-You need to type the name of the airplane in the text box provided. Names should be either the official designation of the aircraft (e.g., "A320", "737") or a commonly used nickname (e.g., "Tomcat", "Flanker").
+    To see that statistics, click on the statistics button. Win the
+    game by scoring more that the computer overall. Don't be
+    discouraged if you don't win every round, it's your overall score
+    that counts. 
 
-**Playing the Game:**
-- In each round, an image of an airplane will be displayed along with the question "What plane is this?"
-- Type your answer in the text box below the image and press Enter.
-- If your answer is correct, the text box will turn green and display "Correct".
-- If your answer is incorrect, the text box will turn red and display the correct answer.
-
-**Control Buttons:**
-- *Help*: Click on this button to view these instructions again.
-- *Statistics*: Click on this button to view your game statistics, including the number of correct and incorrect answers, and the percentage. It also includes an option to save the statistics to a file.
-- *Finish Quiz*: Click on this button to finish the quiz and return to the main menu.
-
-**Game Over:**
-The game ends when you have completed all rounds or clicked "Finish Quiz". You can start a new game by entering the number of rounds or pressing the "Infinite Rounds" button.
-
-Enjoy playing the Plane Quiz and test your knowledge of airplanes!
-"""
+    Good luck! Chose carefully.."""
         self.help_text_label = Label(self.help_frame, bg=background,
-                                     text=help_text, wrap=600,
+                                     text=help_text, wrap=350,
                                      justify="left")
         self.help_text_label.grid(row=1, padx=10)
 
@@ -400,13 +377,10 @@ Enjoy playing the Plane Quiz and test your knowledge of airplanes!
     def close_help(self, partner):
         self.help_box.destroy()
         # Enable the help button in the partner Converter instance
-        if partner.help_button.winfo_exists():
-            partner.help_button.config(state=NORMAL)
+        partner.help_button.config(state=NORMAL)
 
-# Displays users stats with won/ lost totals and percentages
 class DisplayStats:
-    def __init__(self, partner, rounds_won, rounds_lost, rounds_played):
-        # sets up stats window
+    def __init__(self, partner, user_scores):
         self.stats_box = Toplevel()
 
         stats_bg_colour = "#DAE8FC"
@@ -421,12 +395,12 @@ class DisplayStats:
         self.stats_frame.grid()
 
         self.help_heading_label = Label(self.stats_frame,
-                                        text="---- Statistics ----",
+                                        text="Statistics",
                                         font=("Arial", "14", "bold"),
                                         bg=stats_bg_colour)
         self.help_heading_label.grid(row=0)
 
-        stats_text = "Here are your game stats:"
+        stats_text = "Here are your game stats"
         self.help_text_label = Label(self.stats_frame, text = stats_text,
                                      justify="left",bg=stats_bg_colour)
         self.help_text_label.grid(row=1,padx=10)
@@ -437,33 +411,23 @@ class DisplayStats:
         self.data_frame.grid(row=2,padx=10,pady=10)
 
         # get stats for user
-        rounds_won_value = rounds_won.get()
-        rounds_lost_value = rounds_lost.get()
-        rounds_played_value = rounds_played.get()
-        percentage_won = (rounds_won_value / rounds_played_value) * 100 if rounds_played_value != 0 else 0
-        percentage_lost = 100 - percentage_won
+        self.user_stats = self.get_stats(user_scores,"User")
 
         # background for formating
+        head_back = "#FFFFFF"
         odd_rows = "#C9D6E8"
         even_rows = stats_bg_colour
-        
-        # sets up row formats   
-        row_formats = [ odd_rows, even_rows, odd_rows]
 
-        # Define rows
-        main_header_list =["","Won","Lost"]
-        totals_row_list =["Total",rounds_won_value,rounds_lost_value]
-        percentage_row_list = ["Percentages",f"{percentage_won:.3g}%",f"{percentage_lost:.3g}%"]
-        
+        row_names = ["", "Total", "Best Score", "Worst Score", "Average Score"]
+        row_formats = [head_back, odd_rows, even_rows, odd_rows, even_rows]
+
         # data for all labels
         all_labels = []
 
-        # add all items to all_labels
-        count =0
-        for item in range(0, 3):
-            all_labels.append([main_header_list[item],  row_formats[count]])
-            all_labels.append([totals_row_list[item],  row_formats[count]])
-            all_labels.append([percentage_row_list[item],  row_formats[count]])
+        count = 0
+        for item in range(0, len(self.user_stats)):
+            all_labels.append([row_names[item], row_formats[count]])
+            all_labels.append([self.user_stats[item], row_formats[count]])
             count += 1
 
         # create labels based on list above
@@ -483,13 +447,20 @@ class DisplayStats:
                                      fg="#FFFFFF",
                                      command=partial(self.close_stats,
                                                      partner))
-        self.dismiss_button.grid(row=5, column=0, columnspan=5, padx=10, pady=5)
+        self.dismiss_button.grid(row=6, column=0, columnspan=5, padx=10, pady=5)
 
-    #closes stats
+    @staticmethod
+    def get_stats(score_list, entity):
+        total_score = sum(score_list)
+        best_score = max(score_list)
+        worst_score = min(score_list)
+        average = total_score / len(score_list)
+        rounded_average = round(average, 1)
+
+        return [entity, total_score, best_score, worst_score, rounded_average]
+
     def close_stats(self, partner):
-        # checks if stats button exists and configs it if it does
-        if partner.to_stats_btn.winfo_exists():
-            partner.to_stats_btn.config(state=NORMAL)
+        partner.to_stats_btn.config(state=NORMAL)
         self.stats_box.destroy()
 
 if __name__ == "__main__":
