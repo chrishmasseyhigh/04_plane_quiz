@@ -60,6 +60,7 @@ class Mainpage:
 
         response = self.rounds_entry.get()
 
+        # trys input and checks if it is not a whole number >= 1
         try:
             rounds = int(response)
             if rounds <= low_val - 0.000001:
@@ -72,6 +73,8 @@ class Mainpage:
             self.rounds_entry.config(bg="#D9544D")
             self.output_label.config(text=error)
             return "invalid"
+
+        # valid
         else:
             self.rounds_entry.config(bg="white")
             self.output_label.config(text="")
@@ -156,6 +159,7 @@ class Play:
         # Call new_round
         self.new_round()
 
+        # sets up list for all varibles needed for control buttons
         control_buttons = [
             ["#CC6600", "Help", "get help","normal"],
             ["#004C99", "Statistics", "get stats","disabled"],
@@ -266,6 +270,9 @@ class Play:
             # If the input is valid pass it on to the quiz input function
             self.quiz_input(user_input)
 
+            # Clear the entry box
+            self.planes_entry.delete(0, END)
+
     def check_input_validity(self, input_text):
         # Check if the input is empty
         if not input_text:
@@ -342,6 +349,7 @@ class DisplayHelp:
 
     def __init__(self, partner):
 
+        # sets background bg
         background = "#ffe6cc"
         self.help_box = Toplevel()
 
@@ -353,6 +361,7 @@ class DisplayHelp:
         self.help_box.protocol('WM_DELETE_WINDOW',
                                partial(self.close_help, partner))
 
+        # makes the frame and heaing label for help frame
         self.help_frame = Frame(self.help_box, width=500, height=200,
                                 bg=background)
         self.help_frame.grid()
@@ -361,6 +370,8 @@ class DisplayHelp:
                                         text="--- Help ---",
                                         font=("Arial", "18", "bold"))
         self.help_heading_label.grid(row=0)
+
+        # help text edit to change text
         help_text = """Welcome to the Plane Quiz! This application tests your knowledge of different types of aircraft. Below are the instructions on how to play the game:
 
 **Game Objective:**
@@ -383,11 +394,13 @@ The game ends when you have completed all rounds or clicked "Finish Quiz". You c
 
 Enjoy playing the Plane Quiz and test your knowledge of airplanes!
 """
+        # creates help text
         self.help_text_label = Label(self.help_frame, bg=background,
                                      text=help_text, wrap=600,
                                      justify="left")
         self.help_text_label.grid(row=1, padx=10)
 
+        # button to dissmiss help frame
         self.dismiss_button = Button(self.help_frame,
                                      font=("Arial", "12", "bold"),
                                      text="Dismiss", bg="#CC6600",
@@ -411,21 +424,25 @@ class DisplayStats:
 
         stats_bg_colour = "#DAE8FC"
 
+        # disables stats button
         partner.to_stats_btn.config(state=DISABLED)
 
         self.stats_box.protocol('WM_DELETE_WINDOW',
                                 partial(self.close_stats, partner))
 
+        #makes stats frame
         self.stats_frame = Frame(self.stats_box, width=400,
                                  height=200, bg=stats_bg_colour)
         self.stats_frame.grid()
 
-        self.help_heading_label = Label(self.stats_frame,
+        # Creates the stats header
+        self.stats_heading_label = Label(self.stats_frame,
                                         text="---- Statistics ----",
                                         font=("Arial", "14", "bold"),
                                         bg=stats_bg_colour)
-        self.help_heading_label.grid(row=0)
+        self.stats_heading_label.grid(row=0)
 
+        # sets up stats label
         stats_text = "Here are your game stats:"
         self.help_text_label = Label(self.stats_frame, text = stats_text,
                                      justify="left",bg=stats_bg_colour)
@@ -451,15 +468,15 @@ class DisplayStats:
         row_formats = [ odd_rows, even_rows, odd_rows]
 
         # Define rows
-        main_header_list =["","Won","Lost"]
+        main_header_list =["","Right","Wrong"]
         totals_row_list =["Total",rounds_won_value,rounds_lost_value]
         percentage_row_list = ["Percentages",f"{percentage_won:.3g}%",f"{percentage_lost:.3g}%"]
         
         # data for all labels
         all_labels = []
 
-        # add all items to all_labels
-        count =0
+        # add all stats items to all_labels
+        count = 0
         for item in range(0, 3):
             all_labels.append([main_header_list[item],  row_formats[count]])
             all_labels.append([totals_row_list[item],  row_formats[count]])
@@ -485,7 +502,7 @@ class DisplayStats:
                                                      partner))
         self.dismiss_button.grid(row=5, column=0, columnspan=5, padx=10, pady=5)
 
-    #closes stats
+    # closes stats
     def close_stats(self, partner):
         # checks if stats button exists and configs it if it does
         if partner.to_stats_btn.winfo_exists():
